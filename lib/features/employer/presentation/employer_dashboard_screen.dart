@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'employer_history_screen.dart';
+import 'employees_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
-
+import '../../auth/presentation/login_screen.dart';
 class EmployerDashboardScreen extends StatefulWidget {
   final String businessName;
   final String inviteCode;
@@ -86,6 +87,20 @@ class _EmployerDashboardScreenState
             onPressed: () {},
             icon: const Icon(
               Icons.notifications_none_rounded,
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+                (route) => false,
+              );
+            },
+            icon: const Icon(
+              Icons.logout_rounded,
             ),
           ),
         ],
@@ -291,14 +306,22 @@ class _EmployerDashboardScreenState
               ),
 
               const SizedBox(height: 16),
-
               Row(
                 children: [
                   Expanded(
                     child: _ActionCard(
-                      icon: Icons.person_add_alt_1_rounded,
-                      title: 'Add Employee',
-                      onTap: () {},
+                      icon: Icons.people_outline_rounded,
+                      title: 'Employees',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EmployeesScreen(
+                              token: widget.token,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
 
@@ -306,13 +329,24 @@ class _EmployerDashboardScreenState
 
                   Expanded(
                     child: _ActionCard(
-                      icon: Icons.calendar_month_rounded,
-                      title: 'Attendance',
-                      onTap: () {},
+                      icon: Icons.history_rounded,
+                      title: 'History',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EmployerHistoryScreen(
+                              token: widget.token,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
+
+              
             ],
           ),
         ),

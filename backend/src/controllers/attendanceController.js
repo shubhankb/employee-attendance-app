@@ -264,8 +264,197 @@ const getTodayStats = async (req, res) => {
     });
   }
 };
+const getEmployeeHistory = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const [employees] = await pool.execute(
+      `SELECT id
+       FROM employees
+       WHERE user_id = ?
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (employees.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee record not found',
+      });
+    }
+
+    const employeeId = employees[0].id;
+
+    const [history] = await pool.execute(
+      `SELECT
+         id,
+         attendance_date,
+         check_in,
+         check_out,
+         latitude,
+         longitude,
+         status
+       FROM attendance
+       WHERE employee_id = ?
+       ORDER BY attendance_date DESC, check_in DESC`,
+      [employeeId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      history,
+    });
+  } catch (error) {
+    console.error('Get employee history error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch attendance history',
+    });
+  }
+};
+
+
+const getEmployerDayHistory = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { date } = req.query;
+
+    const attendanceDate = date || new Date().toISOString().split('T')[0];
+
+    const [organizations] = await pool.execute(
+      `SELECT id
+       FROM organizations
+       WHERE owner_id = ?
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (organizations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    const organizationId = organizations[0].id;
+
+    const [history] = await pool.execute(
+      `SELECT
+         e.id AS employee_id,
+         u.full_name,
+         u.mobile,
+         a.id AS attendance_id,
+         a.attendance_date,
+         a.check_in,
+         a.check_out,
+         a.status,
+         a.latitude,
+         a.longitude
+       FROM employees e
+       INNER JOIN users u
+         ON u.id = e.user_id
+       LEFT JOIN attendance a
+         ON a.employee_id = e.id
+         AND a.attendance_date = ?
+       WHERE e.organization_id = ?
+       ORDER BY u.full_name ASC`,
+      [attendanceDate, organizationId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      date: attendanceDate,
+      history,
+    });
+  } catch (error) {
+    console.error('Get employer day history error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch day attendance',
+    });
+  }
+};
+
+
+const getEmployerEmployeeHistory = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { employeeId } = req.params;
+
+    const [organizations] = await pool.execute(
+      `SELECT id
+       FROM organizations
+       WHERE owner_id = ?
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (organizations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    const organizationId = organizations[0].id;
+
+    const [employees] = await pool.execute(
+      `SELECT
+         e.id,
+         u.full_name,
+         u.mobile
+       FROM employees e
+       INNER JOIN users u
+         ON u.id = e.user_id
+       WHERE e.id = ?
+       AND e.organization_id = ?
+       LIMIT 1`,
+      [employeeId, organizationId]
+    );
+
+    if (employees.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found',
+      });
+    }
+
+    const [history] = await pool.execute(
+      `SELECT
+         id,
+         attendance_date,
+         check_in,
+         check_out,
+         latitude,
+         longitude,
+         status
+       FROM attendance
+       WHERE employee_id = ?
+       ORDER BY attendance_date DESC, check_in DESC`,
+      [employeeId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      employee: employees[0],
+      history,
+    });
+  } catch (error) {
+    console.error('Get employee attendance history error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch employee history',
+    });
+  }
+};
 
 module.exports = {
   markAttendance,
   getTodayStats,
+  getEmployeeHistory,
+  getEmployerDayHistory,
+  getEmployerEmployeeHistory,
 };

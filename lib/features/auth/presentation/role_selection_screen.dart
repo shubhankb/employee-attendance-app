@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../employer/presentation/employer_setup_screen.dart';
 import '../../../core/constants/app_colors.dart';
+
 // import '../presentation/employer_setup_screen.dart';
 import '../../../core/services/api_service.dart';
 import '../../employer/presentation/employee_join_screen.dart';
@@ -93,7 +94,11 @@ class RoleSelectionScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const EmployeeJoinScreen(),
+                      builder: (_) => EmployeeJoinScreen(
+                        fullName: fullName,
+                        mobile: mobile,
+                        password: password,
+                      ),
                     ),
                   );
                 },

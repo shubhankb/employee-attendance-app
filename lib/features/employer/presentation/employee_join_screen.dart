@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
-
+import '../../employee/presentation/employee_dashboard_screen.dart';
 import '../../../core/services/api_service.dart';
-
 class EmployeeJoinScreen extends StatefulWidget {
-  const EmployeeJoinScreen({super.key});
+  final String fullName;
+  final String mobile;
+  final String password;
+
+  const EmployeeJoinScreen({
+    super.key,
+    required this.fullName,
+    required this.mobile,
+    required this.password,
+  });
 
   @override
   State<EmployeeJoinScreen> createState() => _EmployeeJoinScreenState();
 }
 
+
 class _EmployeeJoinScreenState extends State<EmployeeJoinScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -19,7 +27,14 @@ class _EmployeeJoinScreenState extends State<EmployeeJoinScreen> {
 
   bool _obscurePassword = true;
   bool _loading = false;
+  @override
+  void initState() {
+    super.initState();
 
+    _nameController.text = widget.fullName;
+    _mobileController.text = widget.mobile;
+    _passwordController.text = widget.password;
+  }
   @override
   void dispose() {
     _nameController.dispose();
@@ -28,54 +43,64 @@ class _EmployeeJoinScreenState extends State<EmployeeJoinScreen> {
     _inviteCodeController.dispose();
     super.dispose();
   }
-
   Future<void> _joinOrganization() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _loading = true;
-    });
-
-    try {
-      final result = await ApiService.joinOrganization(
-        fullName: _nameController.text.trim(),
-        mobile: _mobileController.text.trim(),
-        password: _passwordController.text,
-        inviteCode: _inviteCodeController.text.trim(),
-      );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message'] ?? 'Joined successfully',
-          ),
-        ),
-      );
-
-      Navigator.pop(context);
-    } catch (error) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error.toString().replaceFirst('Exception: ', ''),
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }
-    }
+  if (!_formKey.currentState!.validate()) {
+    return;
   }
 
+  setState(() {
+    _loading = true;
+  });
+
+  try {
+    // 1. Join organization
+    await ApiService.joinOrganization(
+      fullName: _nameController.text.trim(),
+      mobile: _mobileController.text.trim(),
+      password: _passwordController.text,
+      inviteCode: _inviteCodeController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    // 2. Automatically login after successful registration
+    final loginResult = await ApiService.login(
+      mobile: _mobileController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    // 3. Go directly to employee dashboard
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmployeeDashboardScreen(
+          fullName: _nameController.text.trim(),
+          organizationName: 'Your Workplace',
+          token: loginResult['token'],
+        ),
+      ),
+      (route) => false,
+    );
+  } catch (error) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

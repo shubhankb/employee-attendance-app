@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/services/api_service.dart';
 import 'employer_dashboard_screen.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../core/services/api_service.dart';
 class EmployerSetupScreen extends StatefulWidget {
   final String token;
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import '../../auth/presentation/login_screen.dart';
+import 'employee_history_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/api_service.dart';
 import 'package:geolocator/geolocator.dart';
@@ -124,6 +125,20 @@ class _EmployeeDashboardScreenState
             onPressed: () {},
             icon: const Icon(
               Icons.notifications_none_rounded,
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                ),
+                (route) => false,
+              );
+            },
+            icon: const Icon(
+              Icons.logout_rounded,
             ),
           ),
         ],
@@ -278,51 +293,70 @@ class _EmployeeDashboardScreenState
 
               const SizedBox(height: 16),
 
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.border,
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EmployeeHistoryScreen(
+                        token: widget.token,
+                      ),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.border,
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      _attendanceMarked
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.history_rounded,
-                      size: 40,
-                      color: _attendanceMarked
-                          ? Colors.green
-                          : AppColors.textSecondary,
-                    ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.history_rounded,
+                          color: AppColors.primary,
+                        ),
+                      ),
 
-                    const SizedBox(height: 10),
+                      const SizedBox(width: 14),
 
-                    Text(
-                      _attendanceMarked
-                          ? 'Present today'
-                          : 'No attendance history yet',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium,
-                    ),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Attendance History',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              'View your previous attendance records.',
+                            ),
+                          ],
+                        ),
+                      ),
 
-                    const SizedBox(height: 6),
-
-                    Text(
-                      _attendanceMarked
-                          ? 'Your attendance was recorded successfully.'
-                          : 'Your attendance records will appear here.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium,
-                    ),
-                  ],
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 18,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

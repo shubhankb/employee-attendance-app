@@ -152,7 +152,53 @@ const getEmployeeCount = async (req, res) => {
     });
   }
 };
+const getEmployees = async (req, res) => {
+  try {
+    const [organizations] = await pool.execute(
+      `SELECT id
+       FROM organizations
+       WHERE owner_id = ?
+       LIMIT 1`,
+      [req.user.userId]
+    );
+
+    if (organizations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    const organizationId = organizations[0].id;
+
+    const [employees] = await pool.execute(
+      `SELECT
+         e.id,
+         u.full_name,
+         u.mobile
+       FROM employees e
+       INNER JOIN users u
+         ON u.id = e.user_id
+       WHERE e.organization_id = ?
+       ORDER BY u.full_name ASC`,
+      [organizationId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      employees,
+    });
+  } catch (error) {
+    console.error('Get employees error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch employees',
+    });
+  }
+};
 module.exports = {
   joinOrganization,
   getEmployeeCount,
+  getEmployees,
 };

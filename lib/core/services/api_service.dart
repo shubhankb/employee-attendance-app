@@ -220,4 +220,103 @@ static Future<Map<String, dynamic>> getTodayStats({
     data['message'] ?? 'Failed to fetch attendance statistics',
   );
 }
+static Future<Map<String, dynamic>> getEmployeeHistory({
+  required String token,
+}) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/attendance/employee-history'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200) {
+    return data;
+  }
+
+  throw Exception(
+    data['message'] ?? 'Failed to fetch attendance history',
+  );
+}
+
+
+static Future<Map<String, dynamic>> getEmployerDayHistory({
+  required String token,
+  String? date,
+}) async {
+  final uri = date == null
+      ? Uri.parse('$baseUrl/api/attendance/day-history')
+      : Uri.parse(
+          '$baseUrl/api/attendance/day-history?date=$date',
+        );
+
+  final response = await http.get(
+    uri,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200) {
+    return data;
+  }
+
+  throw Exception(
+    data['message'] ?? 'Failed to fetch day attendance',
+  );
+}
+
+
+static Future<Map<String, dynamic>> getEmployerEmployeeHistory({
+  required String token,
+  required int employeeId,
+}) async {
+  final response = await http.get(
+    Uri.parse(
+      '$baseUrl/api/attendance/employee/$employeeId/history',
+    ),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200) {
+    return data;
+  }
+
+  throw Exception(
+    data['message'] ?? 'Failed to fetch employee history',
+  );
+}
+
+static Future<Map<String, dynamic>> getEmployees({
+  required String token,
+}) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/employees/all'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode == 200) {
+    return data;
+  }
+
+  throw Exception(
+    data['message'] ?? 'Failed to fetch employees',
+  );
+}
 }
