@@ -7,11 +7,13 @@ const pool = require('./config/database');
 const employeeRoutes = require('./routes/employeeRoutes');
 const app = express();
 const authRoutes = require('./routes/authRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/attendance', attendanceRoutes);
 app.get('/', (req, res) => {
   res.json({
     message: 'Attendance API is running',

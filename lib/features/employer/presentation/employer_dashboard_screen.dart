@@ -23,43 +23,51 @@ class EmployerDashboardScreen extends StatefulWidget {
 class _EmployerDashboardScreenState
     extends State<EmployerDashboardScreen> {
   int _employeeCount = 0;
-  bool _loadingEmployees = true;
+  int _presentCount = 0;
+  int _absentCount = 0;
+  int _leaveCount = 0;
+
+  bool _loadingStats = true;
 
   @override
   void initState() {
     super.initState();
-    _loadEmployeeCount();
+    _loadStats();
   }
 
-  Future<void> _loadEmployeeCount() async {
-    try {
-      final count = await ApiService.getEmployeeCount(
-        token: widget.token,
-      );
+  Future<void> _loadStats() async {
+  try {
+    final result = await ApiService.getTodayStats(
+      token: widget.token,
+    );
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {
-        _employeeCount = count;
-        _loadingEmployees = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
+    final stats = result['stats'];
 
-      setState(() {
-        _loadingEmployees = false;
-      });
+    setState(() {
+      _employeeCount = stats['employees'] ?? 0;
+      _presentCount = stats['present'] ?? 0;
+      _absentCount = stats['absent'] ?? 0;
+      _leaveCount = stats['onLeave'] ?? 0;
+      _loadingStats = false;
+    });
+  } catch (error) {
+    if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error.toString().replaceFirst('Exception: ', ''),
-          ),
+    setState(() {
+      _loadingStats = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error.toString().replaceFirst('Exception: ', ''),
         ),
-      );
-    }
+      ),
+    );
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +77,7 @@ class _EmployerDashboardScreenState
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: _loadEmployeeCount,
+            onPressed: _loadStats,
             icon: const Icon(
               Icons.refresh_rounded,
             ),
@@ -174,19 +182,21 @@ class _EmployerDashboardScreenState
                     child: _StatCard(
                       icon: Icons.people_outline_rounded,
                       title: 'Employees',
-                      value: _loadingEmployees
-                          ? '...'
-                          : '$_employeeCount',
+                      value: _loadingStats
+                        ? '...'
+                        : '$_employeeCount',
                     ),
                   ),
 
                   const SizedBox(width: 12),
 
-                  const Expanded(
+                  Expanded(
                     child: _StatCard(
                       icon: Icons.check_circle_outline_rounded,
                       title: 'Present',
-                      value: '0',
+                      value: _loadingStats
+                          ? '...'
+                          : '$_presentCount',
                     ),
                   ),
                 ],
@@ -194,13 +204,15 @@ class _EmployerDashboardScreenState
 
               const SizedBox(height: 12),
 
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: _StatCard(
                       icon: Icons.cancel_outlined,
                       title: 'Absent',
-                      value: '0',
+                      value: _loadingStats
+                          ? '...'
+                          : '$_absentCount',
                     ),
                   ),
 
@@ -210,7 +222,9 @@ class _EmployerDashboardScreenState
                     child: _StatCard(
                       icon: Icons.event_available_outlined,
                       title: 'On Leave',
-                      value: '0',
+                      value: _loadingStats
+                          ? '...'
+                          : '$_leaveCount',
                     ),
                   ),
                 ],

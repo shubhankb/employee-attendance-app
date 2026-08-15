@@ -90,6 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (_) => EmployeeDashboardScreen(
             fullName: user['fullName'],
             organizationName: user['organizationName'],
+            token: token,
           ),
         ),
         (route) => false,

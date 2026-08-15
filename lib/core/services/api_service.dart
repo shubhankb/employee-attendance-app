@@ -62,34 +62,38 @@ class ApiService {
     );
   }
   static Future<Map<String, dynamic>> createOrganization({
-    required String token,
-    required String name,
-    required String businessType,
-    required String address,
-  }) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/organizations'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'name': name,
-        'businessType': businessType,
-        'address': address,
-      }),
-    );
+  required String token,
+  required String name,
+  required String businessType,
+  required String address,
+  required double latitude,
+  required double longitude,
+}) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/api/organizations'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode({
+      'name': name,
+      'businessType': businessType,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+    }),
+  );
 
-    final data = jsonDecode(response.body);
+  final data = jsonDecode(response.body);
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return data;
-    }
-
-    throw Exception(
-      data['message'] ?? 'Workspace creation failed',
-    );
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    return data;
   }
+
+  throw Exception(
+    data['message'] ?? 'Workspace creation failed',
+  );
+}
   static Future<Map<String, dynamic>> getMyOrganization({
     required String token,
   }) async {
@@ -166,6 +170,54 @@ class ApiService {
 
   throw Exception(
     data['message'] ?? 'Failed to fetch employee count',
+  );
+}
+static Future<Map<String, dynamic>> markAttendance({
+  required String token,
+  required double latitude,
+  required double longitude,
+}) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/api/attendance/mark'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode({
+      'latitude': latitude,
+      'longitude': longitude,
+    }),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    return data;
+  }
+
+  throw Exception(
+    data['message'] ?? 'Failed to mark attendance',
+  );
+}
+static Future<Map<String, dynamic>> getTodayStats({
+  required String token,
+}) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/attendance/today-stats'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    return data;
+  }
+
+  throw Exception(
+    data['message'] ?? 'Failed to fetch attendance statistics',
   );
 }
 }

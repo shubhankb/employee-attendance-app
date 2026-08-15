@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/api_service.dart';
 import 'employer_dashboard_screen.dart';
-
+import 'package:geolocator/geolocator.dart';
+import '../../../core/services/api_service.dart';
 class EmployerSetupScreen extends StatefulWidget {
   final String token;
 
@@ -29,45 +30,98 @@ class _EmployerSetupScreenState extends State<EmployerSetupScreen> {
     super.dispose();
   }
   Future<void> _createWorkspace() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  if (!_formKey.currentState!.validate()) {
+    return;
+  }
 
-    try {
-      final result = await ApiService.createOrganization(
-        token: widget.token,
-        name: _businessNameController.text.trim(),
-        businessType: _businessTypeController.text.trim(),
-        address: _addressController.text.trim(),
-      );
+  try {
+    bool serviceEnabled =
+        await Geolocator.isLocationServiceEnabled();
 
-      if (!mounted) return;
-
-      final organization = result['organization'];
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => EmployerDashboardScreen(
-            businessName: organization['name'],
-            inviteCode: organization['invite_code'],
-            token: widget.token,
-          ),
-        ),
-        (route) => false,
-      );
-    } catch (error) {
+    if (!serviceEnabled) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
+          content: Text('Please turn on location services.'),
+        ),
+      );
+      return;
+    }
+
+    LocationPermission permission =
+        await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location permission is required.'),
+        ),
+      );
+      return;
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
           content: Text(
-            error.toString().replaceFirst('Exception: ', ''),
+            'Location permission is permanently denied. Enable it from settings.',
           ),
         ),
       );
+      return;
     }
+
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
+    );
+
+    final result = await ApiService.createOrganization(
+      token: widget.token,
+      name: _businessNameController.text.trim(),
+      businessType: _businessTypeController.text.trim(),
+      address: _addressController.text.trim(),
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+
+    if (!mounted) return;
+
+    final organization = result['organization'];
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmployerDashboardScreen(
+          businessName: organization['name'],
+          inviteCode: organization['invite_code'],
+          token: widget.token,
+        ),
+      ),
+      (route) => false,
+    );
+  } catch (error) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          error.toString().replaceFirst('Exception: ', ''),
+        ),
+      ),
+    );
   }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
