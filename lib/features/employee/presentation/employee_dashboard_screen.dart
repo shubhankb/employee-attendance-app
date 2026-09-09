@@ -25,7 +25,6 @@ class _EmployeeDashboardScreenState
     extends State<EmployeeDashboardScreen> {
   bool _isMarkingAttendance = false;
   bool _attendanceMarked = false;
-
   Future<void> _markAttendance() async {
   if (_isMarkingAttendance || _attendanceMarked) {
     return;
@@ -64,11 +63,25 @@ class _EmployeeDashboardScreenState
       );
     }
 
-    final position =
-        await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
+    // Get location using Android LocationManager
+    // instead of the problematic high-accuracy fused/NMEA path.
+    Position? position = await Geolocator.getLastKnownPosition();
+
+    position ??= await Geolocator.getCurrentPosition(
+      locationSettings: AndroidSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 0,
+        timeLimit: const Duration(seconds: 20),
       ),
+    );
+
+    debugPrint(
+      'LOCATION: ${position.latitude}, ${position.longitude}',
+    );
+
+
+    debugPrint(
+      'LOCATION: ${position.latitude}, ${position.longitude}',
     );
 
     final result = await ApiService.markAttendance(
@@ -103,6 +116,8 @@ class _EmployeeDashboardScreenState
       _isMarkingAttendance = false;
     });
 
+    debugPrint('ATTENDANCE ERROR: $error');
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -112,7 +127,6 @@ class _EmployeeDashboardScreenState
     );
   }
 }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

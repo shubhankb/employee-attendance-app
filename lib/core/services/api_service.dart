@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   ApiService._();
 
-  static const String baseUrl = 'http://10.0.2.2:5000';
+  static const String baseUrl = 'https://api.shreeshyamautogallery.online';
 
   static Future<Map<String, dynamic>> signup({
     required String fullName,
@@ -40,6 +40,7 @@ class ApiService {
     required String mobile,
     required String password,
   }) async {
+
     final response = await http.post(
       Uri.parse('$baseUrl/api/auth/login'),
       headers: {
@@ -50,7 +51,8 @@ class ApiService {
         'password': password,
       }),
     );
-
+    print('LOGIN STATUS: ${response.statusCode}');
+    print('LOGIN BODY: ${response.body}');
     final data = jsonDecode(response.body);
 
     if (response.statusCode >= 200 && response.statusCode < 300) {

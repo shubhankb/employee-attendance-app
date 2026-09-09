@@ -52,39 +52,43 @@ class _EmployeeHistoryScreenState
       });
     }
   }
-
   String _formatDate(String? date) {
-    if (date == null || date.isEmpty) return '-';
+  if (date == null || date.isEmpty) return '-';
 
-    final parsed = DateTime.tryParse(date);
+  final parsed = DateTime.tryParse(date);
 
-    if (parsed == null) return date;
+  if (parsed == null) return date;
 
-    return '${parsed.day.toString().padLeft(2, '0')}/'
-        '${parsed.month.toString().padLeft(2, '0')}/'
-        '${parsed.year}';
+  final local = parsed.toLocal();
+
+  return '${local.day.toString().padLeft(2, '0')}/'
+      '${local.month.toString().padLeft(2, '0')}/'
+      '${local.year}';
+}
+  String _formatTime(String? value) {
+  if (value == null || value.isEmpty) {
+    return '-';
   }
 
-  String _formatTime(String? time) {
-    if (time == null || time.isEmpty) return '-';
+  final parsed = DateTime.tryParse(value);
 
-    final parsed = DateTime.tryParse(time);
-
-    if (parsed == null) return time;
-
-    final hour = parsed.hour % 12 == 0
-        ? 12
-        : parsed.hour % 12;
-
-    final minute = parsed.minute
-        .toString()
-        .padLeft(2, '0');
-
-    final period = parsed.hour >= 12 ? 'PM' : 'AM';
-
-    return '$hour:$minute $period';
+  if (parsed == null) {
+    return value;
   }
 
+  final local = parsed.toLocal();
+
+  final hour = local.hour % 12 == 0
+      ? 12
+      : local.hour % 12;
+
+  final minute =
+      local.minute.toString().padLeft(2, '0');
+
+  final period = local.hour >= 12 ? 'PM' : 'AM';
+
+  return '$hour:$minute $period';
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

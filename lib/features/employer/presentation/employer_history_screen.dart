@@ -89,30 +89,30 @@ class _EmployerHistoryScreenState
 
     await _loadHistory();
   }
-
   String _formatTime(String? value) {
-    if (value == null || value.isEmpty) {
-      return '-';
-    }
-
-    final parsed = DateTime.tryParse(value);
-
-    if (parsed == null) {
-      return value;
-    }
-
-    final hour = parsed.hour % 12 == 0
-        ? 12
-        : parsed.hour % 12;
-
-    final minute =
-        parsed.minute.toString().padLeft(2, '0');
-
-    final period = parsed.hour >= 12 ? 'PM' : 'AM';
-
-    return '$hour:$minute $period';
+  if (value == null || value.isEmpty) {
+    return '-';
   }
 
+  final parsed = DateTime.tryParse(value);
+
+  if (parsed == null) {
+    return value;
+  }
+
+  final local = parsed.toLocal();
+
+  final hour = local.hour % 12 == 0
+      ? 12
+      : local.hour % 12;
+
+  final minute =
+      local.minute.toString().padLeft(2, '0');
+
+  final period = local.hour >= 12 ? 'PM' : 'AM';
+
+  return '$hour:$minute $period';
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,7 +272,7 @@ class _EmployerHistoryScreenState
             const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final record = _records[index];
-
+          print('EMPLOYER RAW CHECK-IN: ${record['check_in']}');
           final name =
               record['full_name']?.toString() ??
                   'Unknown Employee';
@@ -282,8 +282,7 @@ class _EmployerHistoryScreenState
 
           final isPresent = status == 'present';
           final isLeave = status == 'leave';
-
-          return Container(
+         return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
